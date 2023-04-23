@@ -1,169 +1,274 @@
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.io.FileReader;
 
-public class StudentManagementSystem {
-    
-    static ArrayList<Student> studentList = new ArrayList<Student>();
-    
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+import java.awt.Color;
+
+public class StudentManagementSystemGUI extends JFrame {
+
+    private static final long serialVersionUID = 1L;
+
+    private static final String[] TABLE_COLUMNS = { "ID", "Name", "Email", "Phone Number" };
+
+    private JPanel contentPane;
+    private JTextField idField;
+    private JTextField nameField;
+    private JTextField emailField;
+    private JTextField phoneNumberField;
+    private JButton addButton;
+    private JButton editButton;
+    private JButton deleteButton;
+    private JTable studentTable;
+
     public static void main(String[] args) {
-        
-        Scanner scanner = new Scanner(System.in);
-        boolean quit = false;
-        
-        do {
-            System.out.println("\nStudent Management System");
-            System.out.println("1. Add new student");
-            System.out.println("2. Edit student information");
-            System.out.println("3. Delete student");
-            System.out.println("4. Display all students");
-            System.out.println("5. Quit");
-            System.out.print("Enter your choice: ");
-            
-            int choice = scanner.nextInt();
-            
-            switch(choice) {
-                case 1:
-                    addStudent();
-                    break;
-                case 2:
-                    editStudent();
-                    break;
-                case 3:
-                    deleteStudent();
-                    break;
-                case 4:
-                    displayAllStudents();
-                    break;
-                case 5:
-                    quit = true;
-                    break;
-                default:
-                    System.out.println("Invalid choice!");
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    StudentManagementSystemGUI frame = new StudentManagementSystemGUI();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        } while(!quit);
-        
-        scanner.close();
+        });
     }
-    
-    public static void addStudent() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter student ID: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-        System.out.print("Enter student name: ");
-        String name = scanner.nextLine();
-        System.out.print("Enter student email: ");
-        String email = scanner.nextLine();
-        System.out.print("Enter student phone number: ");
-        String phoneNumber = scanner.nextLine();
-        Student student = new Student(id, name, email, phoneNumber);
-        studentList.add(student);
-        System.out.println("Student added successfully!");
+
+    public StudentManagementSystemGUI() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setBounds(100, 100, 600, 400);
+        contentPane = new JPanel();
+        setContentPane(contentPane);
+        contentPane.setLayout(new BorderLayout(0, 0));
+
+        JPanel inputPanel = new JPanel();
+        contentPane.add(inputPanel, BorderLayout.NORTH);
+        inputPanel.setLayout(new BorderLayout(0, 0));
+
+        JPanel formPanel = new JPanel();
+        inputPanel.add(formPanel, BorderLayout.CENTER);
+        formPanel.setLayout(new BorderLayout(0, 0));
+
+        JPanel labelPanel = new JPanel();
+        formPanel.add(labelPanel, BorderLayout.WEST);
+        labelPanel.setLayout(new BorderLayout(0, 0));
+
+        JLabel idLabel = new JLabel("ID:");
+        labelPanel.add(idLabel, BorderLayout.NORTH);
+
+        JLabel nameLabel = new JLabel("Name:");
+        labelPanel.add(nameLabel, BorderLayout.CENTER);
+
+        JLabel emailLabel = new JLabel("Email:");
+        labelPanel.add(emailLabel, BorderLayout.SOUTH);
+
+        JPanel fieldPanel = new JPanel();
+        formPanel.add(fieldPanel, BorderLayout.CENTER);
+        fieldPanel.setLayout(new BorderLayout(0, 0));
+
+        idField = new JTextField();
+        fieldPanel.add(idField, BorderLayout.NORTH);
+        idField.setColumns(10);
+
+        nameField = new JTextField();
+        fieldPanel.add(nameField, BorderLayout.CENTER);
+        nameField.setColumns(10);
+
+        emailField = new JTextField();
+        fieldPanel.add(emailField, BorderLayout.SOUTH);
+        emailField.setColumns(10);
+
+        JPanel phonePanel = new JPanel();
+        inputPanel.add(phonePanel, BorderLayout.EAST);
+        phonePanel.setLayout(new BorderLayout(0, 0));
+
+        JLabel phoneNumberLabel = new JLabel("Phone Number:");
+        phonePanel.add(phoneNumberLabel, BorderLayout.NORTH);
+
+        phoneNumberField = new JTextField();
+        phonePanel.add(phoneNumberField, BorderLayout.SOUTH);
+        phoneNumberField.setColumns(10);
+
+        JPanel buttonPanel = new JPanel();
+        contentPane.add(buttonPanel, BorderLayout.SOUTH);
+
+        addButton = new JButton("Add");
+        addButton.setBackground(Color.green);
+        buttonPanel.add(addButton);
+        addButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addStudent();
+            }
+        });
+        editButton = new JButton("Edit");
+        editButton.setBackground(Color.green);
+        buttonPanel.add(editButton);
+        editButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                editStudent();
+            }
+        });
+
+        deleteButton = new JButton("Delete");
+        deleteButton.setBackground(Color.red);
+        buttonPanel.add(deleteButton);
+        deleteButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                deleteStudent();
+            }
+        });
+        JButton searchButton = new JButton("Search");
+        buttonPanel.add(searchButton);
+        searchButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                searchStudent();
+            }
+        });
+
+        JScrollPane tableScrollPane = new JScrollPane();
+        contentPane.add(tableScrollPane, BorderLayout.CENTER);
+
+        studentTable = new JTable();
+        tableScrollPane.setViewportView(studentTable);
+
+        DefaultTableModel tableModel = new DefaultTableModel(TABLE_COLUMNS, 0);
+        studentTable.setModel(tableModel);
     }
-    
-    public static void editStudent() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter student ID to edit: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-        Student student = getStudentById(id);
-        if(student != null) {
-            System.out.print("Enter new student name: ");
-            String name = scanner.nextLine();
-            System.out.print("Enter new student email: ");
-            String email = scanner.nextLine();
-            System.out.print("Enter new student phone number: ");
-            String phoneNumber = scanner.nextLine();
-            student.setName(name);
-            student.setEmail(email);
-            student.setPhoneNumber(phoneNumber);
-            System.out.println("Student information updated successfully!");
+
+    private void addStudent() {
+        String id = idField.getText();
+        String name = nameField.getText();
+        String email = emailField.getText();
+        String phoneNumber = phoneNumberField.getText();
+
+        Object[] rowData = { id, name, email, phoneNumber };
+        DefaultTableModel model = (DefaultTableModel) studentTable.getModel();
+        model.addRow(rowData);
+
+        PrintWriter writer = null;
+        File file = new File("studentdata.txt");
+        try {
+            writer = new PrintWriter(new FileWriter(file, true));
+            file.setWritable(true);
+
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        writer.println(id + "," + name + "," + email + "," + phoneNumber);
+        writer.close();
+
+        clearFields();
+    }
+
+    private void editStudent() {
+        int rowIndex = studentTable.getSelectedRow();
+
+        if (rowIndex != -1) {
+            String id = idField.getText();
+            String name = nameField.getText();
+            String email = emailField.getText();
+            String phoneNumber = phoneNumberField.getText();
+
+            DefaultTableModel model = (DefaultTableModel) studentTable.getModel();
+            model.setValueAt(id, rowIndex, 0);
+            model.setValueAt(name, rowIndex, 1);
+            model.setValueAt(email, rowIndex, 2);
+            model.setValueAt(phoneNumber, rowIndex, 3);
+            clearFields();
+        }
+    }
+
+    private void deleteStudent() {
+        DefaultTableModel model = (DefaultTableModel) studentTable.getModel();
+        int selectedRow = studentTable.getSelectedRow();
+        if (selectedRow != -1) {
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this student?",
+                    "Delete Student", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                model.removeRow(selectedRow);
+            }
         } else {
-            System.out.println("Student not found!");
+            JOptionPane.showMessageDialog(this, "Please select a row to delete.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
-    public static void deleteStudent() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter student ID to delete: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-        Student student = getStudentById(id);
-        if(student != null) {
-            studentList.remove(student);
-            System.out.println("Student deleted successfully!");
-        } else {
-            System.out.println("Student not found!");
+
+    public void deleteStudentData(int idField) {
+        // read the data from the file
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("studentdata.txt"))) {
+            String line = reader.readLine();
+            while (line != null) {
+                lines.add(line);
+                line = reader.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    }
-    
-    public static void displayAllStudents() {
-        for(Student student : studentList) {
-            System.out.println(student);
-        }
-    }
-    
-    public static Student getStudentById(int id) {
-        for(Student student : studentList) {
-            if(student.getId() == id) {
-                return student;
+
+        // remove the data with the given student ID
+        List<String> updatedLines = new ArrayList<>();
+        for (String line : lines) {
+            String[] fields = line.split(",");
+            int id = Integer.parseInt(fields[0]);
+            if (id != idField) {
+                updatedLines.add(line);
             }
         }
-        return null;
+
+        // write the updated data back to the file
+        try (PrintWriter writer = new PrintWriter(new FileWriter("studentdata.txt"))) {
+            for (String line : updatedLines) {
+                writer.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+    private void searchStudent() {
+        String searchText = JOptionPane.showInputDialog(this, "Enter student ID to search:");
+        if (searchText != null && !searchText.isEmpty()) {
+            DefaultTableModel model = (DefaultTableModel) studentTable.getModel();
+            boolean found = false;
+            for (int i = 0; i < model.getRowCount(); i++) {
+                String id = (String) model.getValueAt(i, 0);
+                if (id.equalsIgnoreCase(searchText)) {
+                    found = true;
+                    studentTable.setRowSelectionInterval(i, i);
+                    break;
+                }
+            }
+            if (!found) {
+                JOptionPane.showMessageDialog(this, "Student not found.", "Search Result",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
+
+    private void clearFields() {
+        idField.setText("");
+        nameField.setText("");
+        emailField.setText("");
+        phoneNumberField.setText("");
+    }
 }
-
-class Student {
-    
-    public int id;
-    public String name;
-    public String email;
-    public String phoneNumber;
-    
-    public Student(int id, String name, String email, String phoneNumber) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-    }
-    public int getId() {
-        return id;
-    }
-    
-    public void setId(int id) {
-        this.id = id;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-    
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-    
-    @Override
-    public String toString() {
-        return "ID: " + id + ", Name: " + name + ", Email: " + email + ", Phone Number: " + phoneNumber;
-    }
-    
-    
-}
-
